@@ -1,46 +1,35 @@
-ARG ALPINE_IMAGE=alpine:latest
-
-FROM ${ALPINE_IMAGE} as stage
+FROM alpine:3.19 as stage
 
 ARG VERSION
 
-RUN apk add --no-cache --virtual=build-dependencies \
-      build-base \
-      curl \
-      jpeg-dev \
-      jq \
-      libffi-dev \
-      libwebp-dev \
-      py3-cffi \
-      python3-dev \
-      zlib-dev \
-  && apk add --no-cache \
+RUN apk add --no-cache \
+    curl \
+    xz
+RUN mkdir -p /opt/mylar3
+RUN curl -o /tmp/mylar3.tar.gz -sL "https://github.com/mylar3/mylar3/archive/v${VERSION}.tar.gz"
+RUN tar xzf /tmp/mylar3.tar.gz -C /opt/mylar3 --strip-components=1
+RUN rm -rf /tmp/*
+
+FROM python:3.12.3-alpine
+
+COPY --from=stage /opt/mylar3 /opt/mylar3/
+
+RUN apk add --no-cache \
       jpeg \
       libwebp-tools \
       nodejs \
-      py3-openssl \
-      py3-pip \
-      python3 \
       tzdata \
       zlib \
   && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/main \
       unrar \
-  && python3 -m venv .venv \
-  && pip3 install --no-cache-dir -U \
-      pip \
-  && mkdir -p /opt/mylar3 \
-  && curl -o /tmp/mylar3.tar.gz -L https://github.com/mylar3/mylar3/archive/${VERSION}.tar.gz \
-  && tar xf /tmp/mylar3.tar.gz -C /opt/mylar3 --strip-components=1 \
   && pip install --no-cache-dir -r \
-      /opt/mylar3/requirements.txt \
-  && apk del --purge build-dependencies \
-  && rm -rf /tmp/*
+      /opt/mylar3/requirements.txt
 
 EXPOSE 8090
 VOLUME [ "/data" ]
 ENV HOME /data
 WORKDIR $HOME
-CMD [ "/usr/bin/python3", "/opt/mylar3/Mylar.py", "--datadir=/data", "--config=/data/mylar.ini", "--nolaunch" ]
+CMD [ "/usr/local/bin/python", "/opt/mylar3/Mylar.py", "--datadir=/data", "--config=/data/mylar.ini", "--nolaunch" ]
 
 LABEL org.opencontainers.image.description="The python3 version of the automated Comic Book downloader (cbr/cbz) for use with various download clients."
 LABEL org.opencontainers.image.licenses="GPL-3.0-only"
