@@ -22,6 +22,8 @@ RUN apk add --no-cache \
       zlib \
   && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.14/main \
       unrar \
+  && pip install --no-cache-dir \
+      pyOpenSSL \
   && pip install --no-cache-dir -r \
       /opt/mylar3/requirements.txt
 
