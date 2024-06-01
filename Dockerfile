@@ -1,4 +1,4 @@
-FROM alpine:3.19 as stage
+FROM alpine:3.20 as stage
 
 ARG VERSION
 
