@@ -1,0 +1,105 @@
+name: Build release
+on:
+  # New tag
+  push:
+    tags:
+      - v*
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    strategy:
+      fail-fast: true
+      matrix:
+        arch: ["amd64"]
+        include:
+          - arch: amd64
+            os: ubuntu-latest
+
+    steps:
+    - name: Set environment variables
+      id: env
+      run: |
+        echo "VERSION=${TAG//v}" >> $GITHUB_OUTPUT
+      env:
+        TAG: ${{ github.ref_name }}
+
+    - name: Get last release
+      uses: InsonusK/get-latest-release@v1.0.1
+      id: last_release
+      with:
+        myToken: ${{ github.token }}
+        exclude_types: "draft|prerelease"
+        view_top: 1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: Sanitize repo slug
+      uses: actions/github-script@v7
+      id: repo_slug
+      with:
+        result-encoding: string
+        script: return '${{ github.repository }}'.toLowerCase()
+    
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      continue-on-error: true
+      id: buildx1
+      with:
+        build-args: |
+          VERSION=${{ steps.env.outputs.VERSION }}
+        context: .
+        platforms: linux/${{ matrix.arch }}
+        push: true
+        tags: |
+          ghcr.io/${{ steps.repo_slug.outputs.result }}:${{ steps.env.outputs.VERSION }}
+          ghcr.io/${{ steps.repo_slug.outputs.result }}:latest
+
+    # Temp workaround for failed builds
+    - name: Wait to retry
+      if: steps.buildx1.outcome != 'success'
+      run: |
+        sleep 60
+
+    # Temp workaround for failed builds
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      if: steps.buildx1.outcome != 'success'
+      with:
+        build-args: |
+          VERSION=${{ steps.env.outputs.VERSION }}
+        context: .
+        platforms: linux/${{ matrix.arch }}
+        push: true
+        tags: |
+          ghcr.io/${{ steps.repo_slug.outputs.result }}:${{ steps.env.outputs.VERSION }}
+          ghcr.io/${{ steps.repo_slug.outputs.result }}:latest
+
+    - name: Generate changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@v4.3.1
+      with:
+        mytoken: ${{ github.token }}
+        base-ref: '${{ steps.last_release.outputs.tag_name }}'
+
+    - name: Publish release
+      uses: ncipollo/release-action@v1.14.0
+      with:
+        body: |
+          Changes in this Release: 
+          ${{ steps.changelog.outputs.changelog }}
