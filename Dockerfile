@@ -10,7 +10,7 @@ RUN curl -o /tmp/mylar3.tar.gz -sL "https://github.com/mylar3/mylar3/archive/v${
 RUN tar xzf /tmp/mylar3.tar.gz -C /opt/mylar3 --strip-components=1
 RUN rm -rf /tmp/*
 
-FROM python:3.12.3-alpine
+FROM python:3.12.4-alpine
 
 COPY --from=stage /opt/mylar3 /opt/mylar3/
 
