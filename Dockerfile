@@ -37,4 +37,4 @@ LABEL org.opencontainers.image.description="The python3 version of the automated
 LABEL org.opencontainers.image.licenses="GPL-3.0-only"
 LABEL org.opencontainers.image.source="https://github.com/mylar3/mylar3"
 LABEL org.opencontainers.image.title="mylar3"
-LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.version=${VERSION}
