@@ -58,7 +58,7 @@ jobs:
 
     - uses: actions/checkout@v4
       if: steps.check_tag.outputs.exists == 'false'
-  
+
     - name: Update Readme
       uses: jacobtomlinson/gha-find-replace@v3
       if: steps.check_tag.outputs.exists == 'false'
