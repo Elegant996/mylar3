@@ -8,20 +8,20 @@ on:
         default: 'master'
 
     outputs:
-      latestTag:
-        description: 'Current release tag'
-        value: '${{ jobs.check-latest.outputs.tag }}'
       updateRequired:
         description: 'New version found'
-        value: ${{ jobs.check-latest.outputs.update }}
+        value: ${{ jobs.check-upstream.outputs.update }}
       upstreamVersion:
         description: 'Upstream version'
-        value: '${{ jobs.check-latest.outputs.version }}'
+        value: '${{ jobs.check-upstream.outputs.version }}'
 
 jobs:
-  check-latest:
-    name: Check latest version
+  check-upstream:
+    name: Check upstream version
     runs-on: ubuntu-latest
+
+    env:
+      currentVersion: ${{ vars.RELEASE_VERSION }}
 
     permissions:
       contents: write
@@ -35,7 +35,6 @@ jobs:
             os: ubuntu-latest
 
     outputs:
-      tag: 'v${{ steps.current.outputs.version }}'
       update: ${{ steps.check_tag.outputs.exists == 'false' }}
       version: '${{ steps.upstream.outputs.version }}'
 
@@ -51,17 +50,6 @@ jobs:
         
         echo "version=${TAG//v}" >> $GITHUB_OUTPUT
 
-    - name: Get current release
-      id: current
-      run: |
-        TAG=$(curl -sL --request GET \
-          --url "https://api.github.com/repos/Elegant996/mylar3/releases" \
-          --header "Accept: application/vnd.github+json" \
-          --header "Authorization: token ${{ github.token }}" \
-          | jq -r 'first(.[]) | .tag_name')
-
-        echo "version=${TAG//v}" >> $GITHUB_OUTPUT
-
     - name: Check if tag exists
       uses: mukunku/tag-exists-action@v1.6.0
       id: check_tag
@@ -70,21 +58,21 @@ jobs:
 
     - uses: actions/checkout@v4
       if: steps.check_tag.outputs.exists == 'false'
-
+  
     - name: Update Readme
-      uses: MathieuSoysal/file-updater-for-release@v1.0.3
+      uses: jacobtomlinson/gha-find-replace@v3
       if: steps.check_tag.outputs.exists == 'false'
       with:
-        files: README.md
-        version: '${{ steps.upstream.outputs.version }}'
-        old-version: '${{ steps.current.outputs.version }}'
-        with-checkout: false
-    
+        find: '${{ env.currentVersion }}'
+        replace: '${{ steps.upstream.outputs.version }}'
+        include: 'README.md'
+        regex: false
+
     - name: Push changes
       uses: EndBug/add-and-commit@v9
       if: steps.check_tag.outputs.exists == 'false'
       with:
         committer_name: GitHub Actions
         committer_email: actions@github.com
-        message: 'docs: Bump ${{ inputs.branch }} image version to ${{ steps.upstream.outputs.version }}'
+        message: 'docs: Bump image version to ${{ steps.upstream.outputs.version }}'
         tag: 'v${{ steps.upstream.outputs.version }}'
