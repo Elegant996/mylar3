@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Get previous release
         id: previous-release
         uses: sammcoe/get-previous-release-action@v1
@@ -17,7 +19,7 @@ jobs:
         uses: metcalfc/changelog-generator@v4.6.2
         with:
           mytoken: ${{ github.token }}
-          base-ref: ${{ steps.previous-release.outputs.release }}
+          base-ref: ${{ steps.previous-release.outputs.tag }}
 
       - name: Update release
         uses: ncipollo/release-action@v1
