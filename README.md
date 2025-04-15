@@ -8,5 +8,5 @@ Docker
 This repo will periodically check mylar3 for updates and build a container image from scratch using an Alpine base layout:
 
 ```
-docker pull ghcr.io/elegant996/mylar3:v0.8.2
+docker pull ghcr.io/elegant996/mylar3:v0.8.0
 ```
