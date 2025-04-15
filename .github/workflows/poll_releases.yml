@@ -79,9 +79,9 @@ jobs:
     # Cannot use matrix in this instance
     env:
       release-branch: ${{ needs.check-upstream.outputs.release-branch }}
-      release-version: ${{ needs.check-upstream.outputs.release-version }}
+      release-version: ${{ needs.check-upstream.outputs.release-version || '' }}
       prerelease-branch: ${{ needs.check-upstream.outputs.prerelease-branch }}
-      prerelease-version: ${{ needs.check-upstream.outputs.prerelease-version }}
+      prerelease-version: ${{ needs.check-upstream.outputs.prerelease-version || '' }}
 
     steps:
       - uses: actions/checkout@v4

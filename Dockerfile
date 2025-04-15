@@ -4,9 +4,9 @@ FROM scratch AS source
 
 ARG TAG
 
-ADD --exclude=\.* https://github.com/mylar3/mylar3.git#${TAG} /mylar3
+ADD --exclude=*.md --exclude=\.* https://github.com/mylar3/mylar3.git#${TAG} /mylar3
 
-FROM python:3.12.3-alpine AS build-sysroot
+FROM python:3.13.3-alpine AS build-sysroot
 
 ENV PATH="/sysroot/usr/local/opt/python/bin:$PATH"
 ENV PIP_ROOT_USER_ACTION=ignore
@@ -45,7 +45,7 @@ RUN pip install --no-cache-dir --root=/sysroot --requirement \
 COPY --chmod=755 ./entrypoint.sh /sysroot/entrypoint.sh
 
 # Build image
-FROM python:3.12.3-alpine
+FROM python:3.13.3-alpine
 COPY --from=build-sysroot /sysroot/ /
 
 EXPOSE 8090
