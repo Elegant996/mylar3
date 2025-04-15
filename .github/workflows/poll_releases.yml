@@ -63,10 +63,9 @@ jobs:
         id: releases
         run: |
             echo "${prerelease}-branch=${{ matrix.branch }}" >> "$GITHUB_OUTPUT"
-            echo "${prerelease}-version=${version}" >> "$GITHUB_OUTPUT"
+            echo "${prerelease}-version=${{ !fromJSON(steps.check-tag.outputs.exists) && steps.upstream.outputs.version || '' }}" >> "$GITHUB_OUTPUT"
         env:
           prerelease: ${{ !fromJSON(matrix.prerelease) && 'release' || 'prerelease' }}
-          version: ${{ !fromJSON(steps.check-tag.outputs.exists) && steps.upstream.outputs.version || '' }}
 
   commit-and-push:
     name: Push commits and release upstream version
