@@ -61,7 +61,7 @@ jobs:
 
       - name: Store releases
         id: releases
-        if: !fromJSON(steps.check-tag.outputs.exists)
+        if: ${{ !fromJSON(steps.check-tag.outputs.exists) }}
         run: |
             echo "${prerelease}-branch=${{ matrix.branch }}" >> "$GITHUB_OUTPUT"
             echo "${prerelease}-version=${{ steps.upstream.outputs.version }}" >> "$GITHUB_OUTPUT"
