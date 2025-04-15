@@ -1,8 +1,8 @@
 FROM scratch AS source
 
-ARG VERSION
+ARG TAG
 
-ADD --exclude=\.* https://github.com/mylar3/mylar3.git#v${VERSION} /mylar3
+ADD --exclude=\.* https://github.com/mylar3/mylar3.git#${TAG} /mylar3
 
 FROM python:3.12.3-alpine AS build-sysroot
 
@@ -52,11 +52,3 @@ ENV HOME="/data"
 ENV PATH="/usr/local/opt/python/bin:$PATH"
 WORKDIR $HOME
 CMD ["python", "/opt/mylar3/Mylar.py", "--datadir=/data", "--config=/data/mylar.ini", "--nolaunch"]
-
-ARG VERSION
-
-LABEL org.opencontainers.image.description="The python3 version of the automated Comic Book downloader (cbr/cbz) for use with various download clients."
-LABEL org.opencontainers.image.licenses="GPL-3.0-only"
-LABEL org.opencontainers.image.source="https://github.com/mylar3/mylar3"
-LABEL org.opencontainers.image.title="mylar3"
-LABEL org.opencontainers.image.version=${VERSION}
