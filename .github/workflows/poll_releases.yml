@@ -150,6 +150,7 @@ jobs:
     needs: [commit-and-push]
     name: Publish releases
     runs-on: ubuntu-latest
+    if: needs.commit-and-push.outputs.matrix-branch != ''
 
     strategy:
       max-parallel: 1
