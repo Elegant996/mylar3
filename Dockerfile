@@ -53,4 +53,5 @@ VOLUME ["/data"]
 ENV HOME="/data"
 ENV PATH="/usr/local/opt/python/bin:$PATH"
 WORKDIR $HOME
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python", "/opt/mylar3/Mylar.py", "--datadir=/data", "--config=/data/mylar.ini", "--nolaunch"]
