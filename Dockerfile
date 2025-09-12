@@ -1,24 +1,29 @@
 # syntax=docker/dockerfile:1.7-labs
 
-FROM scratch AS source
+FROM python:3.12.11-alpine AS build-sysroot
 
 ARG TAG
 
-ADD --exclude=*.md --exclude=\.* https://github.com/mylar3/mylar3.git#${TAG} /mylar3
-
-FROM python:3.12.11-alpine AS build-sysroot
+ADD "https://github.com/mylar3/mylar3/archive/refs/tags/${TAG}.tar.gz" "/archives/mylar3.tar.gz"
 
 ENV PATH="/sysroot/usr/local/opt/python/bin:$PATH"
 ENV PIP_ROOT_USER_ACTION=ignore
 
 # Prepare sysroot
-RUN mkdir -p /sysroot/etc/apk && cp -r /etc/apk/* /sysroot/etc/apk/
+RUN set -ex; \
+    mkdir -p /sysroot/opt/mylar3; \
+    mkdir -p /sysroot/etc/apk; \
+    cp -r /etc/apk/* /sysroot/etc/apk/
 
 # Fetch build dependencies
-RUN apk add --no-cache \
+RUN set -ex; \
+    apk add --no-cache \
     build-base \
-    linux-headers
-RUN pip install --upgrade --no-cache-dir \
+    libffi-dev \
+    linux-headers \
+    tar \
+    ; \
+    pip install --upgrade --no-cache-dir \
     pip \
     wheel
 
@@ -29,15 +34,21 @@ RUN apk add --no-cache --initdb -p /sysroot \
     libwebp-tools \
     nodejs \
     tzdata \
-    zlib-dev
+    tini \
+    zlib-dev \
+    ; \
+    apk --no-cache upgrade \
+    -X https://dl-cdn.alpinelinux.org/alpine/v3.14/main \
+    unrar
 
 # Install mylar3 to new system root
-COPY --from=source /mylar3 /sysroot/opt/mylar3/
-RUN mkdir -p /usr/local/opt/python /sysroot/usr/local/opt/python
-RUN ln -s /usr/local/opt/python /sysroot/usr/local/opt/python
-RUN python3 -m venv /usr/local/opt/python
-RUN source /usr/local/opt/python
-RUN pip install --no-cache-dir --root=/sysroot --requirement \
+RUN set -ex; \
+    tar -xvzf "/archives/mylar3.tar.gz" -C "/sysroot/opt/mylar3" --strip-components=1; \
+    mkdir -p /usr/local/opt/python /sysroot/usr/local/opt/python; \
+    ln -s /usr/local/opt/python /sysroot/usr/local/opt/python; \
+    python3 -m venv /usr/local/opt/python; \
+    source /usr/local/opt/python; \
+    pip install --no-cache-dir --root=/sysroot --requirement \
     /sysroot/opt/mylar3/requirements.txt \
     pyOpenSSL
 
@@ -51,7 +62,7 @@ COPY --from=build-sysroot /sysroot/ /
 EXPOSE 8090
 VOLUME [ "/data" ]
 ENV HOME="/data"
-ENV PATH="/usr/local/opt/python/bin:$PATH"
+ENV PATH="/usr/local/opt/python/bin:${PATH}"
 WORKDIR $HOME
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "python", "/opt/mylar3/Mylar.py", "--datadir=/data", "--config=/data/mylar.ini", "--nolaunch" ]
+ENTRYPOINT [ "/sbin/tini", "--", "/entrypoint.sh" ]
+CMD [ "python", "/opt/mylar3/Mylar.py", "--daemon", "--nolaunch", "--pidfile=/run/mylar/mylar.pid", "--datadir=/data", "--config=/data/mylar.ini" ]
