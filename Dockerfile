@@ -64,5 +64,5 @@ VOLUME [ "/data" ]
 ENV HOME="/data"
 ENV PATH="/usr/local/opt/python/bin:${PATH}"
 WORKDIR $HOME
-ENTRYPOINT [ "/sbin/tini", "--", "/entrypoint.sh" ]
-CMD [ "python", "/opt/mylar3/Mylar.py", "--daemon", "--nolaunch", "--pidfile=/run/mylar/mylar.pid", "--datadir=/data", "--config=/data/mylar.ini" ]
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "python", "/opt/mylar3/Mylar.py", "--nolaunch", "--pidfile=/run/mylar/mylar.pid", "--datadir=/data", "--config=/data/mylar.ini" ]
