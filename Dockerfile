@@ -5,6 +5,7 @@ FROM python:3.11.13-alpine AS build-sysroot
 ARG TAG
 
 ADD "https://github.com/mylar3/mylar3/archive/refs/tags/${TAG}.tar.gz" "/archives/mylar3.tar.gz"
+ADD "https://www.rarlab.com/rar/rarlinux-x64-712.tar.gz" "/archives/unrar.tar.gz"
 
 ENV PATH="/sysroot/usr/local/opt/python/bin:$PATH"
 ENV PIP_ROOT_USER_ACTION=ignore
@@ -37,9 +38,7 @@ RUN apk add --no-cache --initdb -p /sysroot \
     tini \
     zlib-dev \
     ; \
-    apk --no-cache upgrade \
-    -X https://dl-cdn.alpinelinux.org/alpine/v3.14/main \
-    unrar
+    tar -xvzf "/archives/unrar.tar.gz" -C "/sysroot/usr/bin" --strip-components=1 --no-anchored 'unrar'
 
 # Install mylar3 to new system root
 RUN set -ex; \
