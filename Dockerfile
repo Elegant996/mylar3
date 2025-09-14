@@ -30,6 +30,7 @@ RUN set -ex; \
 
 # Fetch runtime dependencies
 RUN apk add --no-cache --initdb -p /sysroot \
+    dumb-init \
     jpeg-dev \
     libffi-dev \
     libwebp-tools \
@@ -63,5 +64,5 @@ VOLUME [ "/data" ]
 ENV HOME="/data"
 ENV PATH="/usr/local/opt/python/bin:${PATH}"
 WORKDIR $HOME
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "python", "/opt/mylar3/Mylar.py", "--nolaunch", "--pidfile=/run/mylar/mylar.pid", "--datadir=/data", "--config=/data/mylar.ini" ]
+ENTRYPOINT [ "/usr/bin/dumb-init", "--", "/entrypoint.sh" ]
+CMD [ "python", "/opt/mylar3/Mylar.py", "--daemon", "--nolaunch", "--pidfile=/run/mylar/mylar.pid", "--datadir=/data" ]
