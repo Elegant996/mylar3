@@ -36,7 +36,6 @@ RUN apk add --no-cache --initdb -p /sysroot \
     libwebp-tools \
     nodejs \
     tzdata \
-    tini \
     zlib-dev \
     ; \
     tar -xvzf "/archives/unrar.tar.gz" -C "/sysroot/usr/bin" --strip-components=1 --no-anchored 'unrar'
@@ -48,9 +47,12 @@ RUN set -ex; \
     ln -s /usr/local/opt/python /sysroot/usr/local/opt/python; \
     python3 -m venv /usr/local/opt/python; \
     source /usr/local/opt/python; \
-    pip install --no-cache-dir --root=/sysroot --requirement --no-warn-script-location \
-    /sysroot/opt/mylar3/requirements.txt \
+    pip install --no-cache-dir --no-warn-script-location --root=/sysroot \
+    --requirement /sysroot/opt/mylar3/requirements.txt \
     pyOpenSSL
+
+# Install modified __init__.py
+COPY --chmod=644 ./__init__.py /sysroot/opt/mylar3/mylar/__init__.py
 
 # Install entrypoint
 COPY --chmod=755 ./entrypoint.sh /sysroot/entrypoint.sh
