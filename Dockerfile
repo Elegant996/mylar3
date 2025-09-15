@@ -48,7 +48,7 @@ RUN set -ex; \
     ln -s /usr/local/opt/python /sysroot/usr/local/opt/python; \
     python3 -m venv /usr/local/opt/python; \
     source /usr/local/opt/python; \
-    pip install --no-cache-dir --root=/sysroot --requirement \
+    pip install --no-cache-dir --root=/sysroot --requirement --no-warn-script-location \
     /sysroot/opt/mylar3/requirements.txt \
     pyOpenSSL
 
