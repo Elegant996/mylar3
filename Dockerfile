@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7-labs
 
-FROM python:3.11.13-alpine AS build-sysroot
+FROM python:3.13.7-alpine AS build-sysroot
 
 ARG TAG
 
@@ -58,7 +58,7 @@ COPY --chmod=644 ./__init__.py /sysroot/opt/mylar3/mylar/__init__.py
 COPY --chmod=755 ./entrypoint.sh /sysroot/entrypoint.sh
 
 # Build image
-FROM python:3.11.13-alpine
+FROM python:3.13.7-alpine
 COPY --from=build-sysroot /sysroot/ /
 
 EXPOSE 8090
